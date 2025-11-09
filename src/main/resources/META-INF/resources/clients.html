@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Client Management - Snabel Accounting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        h1, h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn-secondary {
+            background: #718096;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .alert-warning {
+            background: #feebc8;
+            color: #7c2d12;
+            border: 1px solid #fbd38d;
+        }
+
+        .secret-display {
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border: 2px solid #e53e3e;
+        }
+
+        .secret-display h3 {
+            color: #e53e3e;
+            margin-bottom: 10px;
+        }
+
+        .secret-value {
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+            border: 1px solid #cbd5e0;
+        }
+
+        .copy-btn {
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .user-info {
+            color: #4a5568;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-active {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge-inactive {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Form -->
+    <div id="loginForm" class="login-container">
+        <div class="card">
+            <h1>API Client Management</h1>
+            <div id="loginError" class="alert alert-error hidden"></div>
+            <form onsubmit="login(event)">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required autocomplete="current-password">
+                </div>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="container hidden">
+        <div class="card">
+            <div class="header">
+                <h1>API Client Management</h1>
+                <div class="user-info">
+                    <span id="userDisplay"></span>
+                    <button onclick="logout()" class="btn-secondary" style="margin-left: 10px;">Logout</button>
+                </div>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <!-- Secret Display (shown after creation) -->
+            <div id="secretDisplay" class="secret-display hidden">
+                <h3>⚠️ IMPORTANT: Save Your Client Secret</h3>
+                <p>This is the only time you will see this secret. Please save it securely.</p>
+                <div class="secret-value">
+                    <strong>Client ID:</strong> <span id="displayClientId"></span><br>
+                    <strong>Client Secret:</strong> <span id="displayClientSecret"></span>
+                </div>
+                <button onclick="copySecret()" class="copy-btn">Copy to Clipboard</button>
+                <button onclick="closeSecretDisplay()" class="btn-secondary copy-btn">Close</button>
+            </div>
+
+            <!-- Create Client Form -->
+            <h2>Create New API Client</h2>
+            <form onsubmit="createClient(event)">
+                <div class="form-group">
+                    <label for="clientName">Name *</label>
+                    <input type="text" id="clientName" required placeholder="e.g., Mobile App Integration">
+                </div>
+                <div class="form-group">
+                    <label for="clientDescription">Description</label>
+                    <textarea id="clientDescription" placeholder="Optional description of this client"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="clientScopes">Scopes (comma-separated)</label>
+                    <input type="text" id="clientScopes" placeholder="e.g., read:invoices,write:invoices">
+                </div>
+                <button type="submit">Create Client</button>
+            </form>
+        </div>
+
+        <!-- Client List -->
+        <div class="card">
+            <h2>Active API Clients</h2>
+            <table id="clientsTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Client ID</th>
+                        <th>Scopes</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="clientsTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #999;">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let authToken = null;
+        let currentUser = null;
+
+        // Login function
+        async function login(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.token;
+                    currentUser = data;
+
+                    // Show main app
+                    document.getElementById('loginForm').classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    document.getElementById('userDisplay').textContent = `Logged in as: ${data.username}`;
+
+                    // Load clients
+                    loadClients();
+                } else {
+                    const error = await response.json();
+                    errorDiv.textContent = error.error || 'Login failed';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error: ' + error.message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // Load clients
+        async function loadClients() {
+            try {
+                const response = await fetch('/api/clients', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const clients = await response.json();
+                    displayClients(clients);
+                } else if (response.status === 401) {
+                    showAlert('Session expired. Please login again.', 'error');
+                    logout();
+                } else {
+                    showAlert('Failed to load clients', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error: ' + error.message, 'error');
+            }
+        }
+
+        // Display clients in table
+        function displayClients(clients) {
+            const tbody = document.getElementById('clientsTableBody');
+
+            if (clients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No clients found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = clients.map(client => `
+                <tr>
+                    <td>${escapeHtml(client.name)}</td>
+                    <td><code>${escapeHtml(client.clientId)}</code></td>
+                    <td>${escapeHtml(client.scopes || '-')}</td>
+                    <td>${new Date(client.createdAt).toLocaleDateString()}</td>
+                    <td>
+                        <span class="badge ${client.active ? 'badge-active' : 'badge-inactive'}">
+                            ${client.active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="deleteClient(${client.id}, '${escapeHtml(client.name)}')"
+                                class="btn-danger"
+                                ${!client.active ? 'disabled' : ''}>
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Create client
+        async function createClient(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('clientName').value;
+            const description = document.getElementById('clientDescription').value;
+            const scopes = document.getElementById('clientScopes').value;
+
+            try {
+                const response = await fetch('/api/clients', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, description, scopes })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Show the secret
+                    document.getElementById('displayClientId').textContent = data.clientId;
+                    document.getElementById('displayClientSecret').textContent = data.clientSecret;
+                    document.getElementById('secretDisplay').classList.remove('hidden');
+
+                    // Clear form
+                    document.getElementById('clientName').value = '';
+                    document.getElementById('clientDescription').value = '';
+                    document.getElementById('clientScopes').value = '';
+
+                    // Reload clients
+                    loadClients();
+
+                    showAlert('Client created successfully!', 'success');
+                } else if (response.status === 401) {
+                    showAlert('Session expired. Please login again.', 'error');
+                    logout();
+                } else {
+                    const error = await response.json();
+                    showAlert('Failed to create client: ' + (error.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showAlert('Network error: ' + error.message, 'error');
+            }
+        }
+
+        // Delete client
+        async function deleteClient(id, name) {
+            if (!confirm(`Are you sure you want to delete client "${name}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/clients/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    showAlert('Client deleted successfully', 'success');
+                    loadClients();
+                } else if (response.status === 401) {
+                    showAlert('Session expired. Please login again.', 'error');
+                    logout();
+                } else if (response.status === 404) {
+                    showAlert('Client not found', 'error');
+                } else {
+                    showAlert('Failed to delete client', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error: ' + error.message, 'error');
+            }
+        }
+
+        // Copy secret to clipboard
+        function copySecret() {
+            const clientId = document.getElementById('displayClientId').textContent;
+            const clientSecret = document.getElementById('displayClientSecret').textContent;
+            const text = `Client ID: ${clientId}\nClient Secret: ${clientSecret}`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showAlert('Copied to clipboard!', 'success');
+            }).catch(err => {
+                showAlert('Failed to copy: ' + err.message, 'error');
+            });
+        }
+
+        // Close secret display
+        function closeSecretDisplay() {
+            document.getElementById('secretDisplay').classList.add('hidden');
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${alertClass}`;
+            alertDiv.textContent = message;
+
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

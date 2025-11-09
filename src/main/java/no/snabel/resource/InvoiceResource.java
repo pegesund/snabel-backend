@@ -13,7 +13,7 @@ import java.util.List;
 @Path("/api/invoices")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RolesAllowed({"USER", "ADMIN", "ACCOUNTANT"})
+@RolesAllowed({"USER", "ADMIN", "ACCOUNTANT", "CLIENT"})
 public class InvoiceResource extends SecureResource {
 
     @GET

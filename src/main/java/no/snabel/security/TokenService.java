@@ -16,6 +16,9 @@ public class TokenService {
     @ConfigProperty(name = "snabel.jwt.duration.app", defaultValue = "2592000")
     Long appTokenDuration;
 
+    @ConfigProperty(name = "snabel.jwt.duration.client", defaultValue = "3600")
+    Long clientTokenDuration;  // 1 hour for client credentials
+
     @ConfigProperty(name = "mp.jwt.verify.issuer", defaultValue = "https://snabel.no")
     String issuer;
 
@@ -28,12 +31,29 @@ public class TokenService {
                 .claim("customerId", customerId)
                 .claim("role", role)
                 .claim("deviceType", deviceType)
+                .claim("tokenType", "user")
                 .groups(Set.of(role))
                 .expiresIn(Duration.ofSeconds(duration))
                 .sign();
     }
 
+    public String generateClientToken(String clientId, Long customerId, String scopes) {
+        return Jwt.issuer(issuer)
+                .upn(clientId)  // Use clientId as principal
+                .claim("clientId", clientId)
+                .claim("customerId", customerId)
+                .claim("scopes", scopes)
+                .claim("tokenType", "client")
+                .groups(Set.of("CLIENT"))  // Special group for client tokens
+                .expiresIn(Duration.ofSeconds(clientTokenDuration))
+                .sign();
+    }
+
     public Long getTokenDuration(String deviceType) {
         return "app".equalsIgnoreCase(deviceType) ? appTokenDuration : webTokenDuration;
+    }
+
+    public Long getClientTokenDuration() {
+        return clientTokenDuration;
     }
 }

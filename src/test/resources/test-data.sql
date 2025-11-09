@@ -4,9 +4,9 @@
 INSERT INTO customers (id, organization_number, company_name, contact_person, email, phone, city, country, created_at, updated_at, active)
 VALUES (1, '123456789', 'Test Company AS', 'John Doe', 'test@example.com', '+4712345678', 'Oslo', 'Norge', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true);
 
--- Insert test user (password is 'password' bcrypt hashed)
+-- Insert test user (password is 'snabeltann' bcrypt hashed)
 INSERT INTO users (id, customer_id, username, password_hash, email, full_name, role, created_at, updated_at, active)
-VALUES (1, 1, 'testuser', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'testuser@example.com', 'Test User', 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true);
+VALUES (1, 1, 'snabel', '$2a$10$vPPqE3qM2OqP3YhHPNqNJ.iJY7YfqFqO0mJ2xC1vPr9wZqTqY1s9G', 'snabel@example.com', 'Snabel User', 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true);
 
 -- Insert standard accounts (Norwegian NS 4102)
 INSERT INTO standard_accounts (id, account_number, account_name, account_type, account_class, vat_code, description, is_system, active) VALUES

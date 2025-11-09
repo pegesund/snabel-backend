@@ -8,6 +8,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.snabel.dto.LoginRequest;
 import no.snabel.dto.LoginResponse;
+import no.snabel.dto.TokenRequest;
+import no.snabel.model.ApiClient;
 import no.snabel.model.User;
 import no.snabel.security.TokenService;
 
@@ -63,5 +65,41 @@ public class AuthService {
         user.createdAt = LocalDateTime.now();
         user.updatedAt = LocalDateTime.now();
         return user.persistAndFlush();
+    }
+
+    @WithTransaction
+    public Uni<LoginResponse> clientCredentialsLogin(TokenRequest request) {
+        return ApiClient.<ApiClient>find("clientId = ?1 and active = true", request.clientId)
+                .firstResult()
+                .onItem().ifNull().failWith(() -> new SecurityException("Invalid client credentials"))
+                .onItem().transformToUni(client -> {
+                    // Verify client secret
+                    if (!BcryptUtil.matches(request.clientSecret, client.clientSecretHash)) {
+                        return Uni.createFrom().failure(new SecurityException("Invalid client credentials"));
+                    }
+
+                    // Check expiration
+                    if (client.expiresAt != null && client.expiresAt.isBefore(LocalDateTime.now())) {
+                        return Uni.createFrom().failure(new SecurityException("Client credentials expired"));
+                    }
+
+                    // Generate client token
+                    String token = tokenService.generateClientToken(
+                            client.clientId,
+                            client.customer.id,
+                            client.scopes != null ? client.scopes : ""
+                    );
+
+                    Long expiresIn = tokenService.getClientTokenDuration();
+
+                    return Uni.createFrom().item(new LoginResponse(
+                            token,
+                            null,  // No userId for client tokens
+                            client.clientId,
+                            client.customer.id,
+                            "CLIENT",
+                            expiresIn
+                    ));
+                });
     }
 }

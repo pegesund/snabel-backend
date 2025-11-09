@@ -9,11 +9,25 @@ public abstract class SecureResource {
     JsonWebToken jwt;
 
     protected Long getCustomerId() {
-        return jwt.getClaim("customerId");
+        Object claim = jwt.getClaim("customerId");
+        if (claim instanceof Number) {
+            return ((Number) claim).longValue();
+        }
+        if (claim != null) {
+            return Long.valueOf(claim.toString());
+        }
+        return null;
     }
 
     protected Long getUserId() {
-        return jwt.getClaim("userId");
+        Object claim = jwt.getClaim("userId");
+        if (claim instanceof Number) {
+            return ((Number) claim).longValue();
+        }
+        if (claim != null) {
+            return Long.valueOf(claim.toString());
+        }
+        return null;
     }
 
     protected String getRole() {
