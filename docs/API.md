@@ -343,9 +343,31 @@ Create a new invoice.
   "totalAmount": 12500.00,
   "currency": "NOK",
   "paymentTerms": "14 dager",
+  "buyerReference": "PO-12345",
+  "orderReference": "ORDER-67890",
+  "contractReference": "CONTRACT-2024-01",
+  "paymentReference": "1234567890128",
+  "bankAccount": "12345678901",
+  "clientEndpointId": "987654321",
+  "clientEndpointScheme": "0192",
   "notes": "Invoice notes"
 }
 ```
+
+**PEPPOL/EHF Fields (for PEPPOL BIS 3.0 Billing compliance):**
+- `buyerReference` (string, recommended): Customer's reference (PEPPOL-EN16931-R003)
+- `orderReference` (string, optional): Purchase order reference (alternative to buyerReference)
+- `contractReference` (string, optional): Contract or agreement reference
+- `paymentReference` (string, optional): KID number or payment reference
+- `bankAccount` (string, optional): Override supplier's default bank account
+- `clientEndpointId` (string, recommended): Buyer's electronic address for PEPPOL (PEPPOL-EN16931-R010)
+- `clientEndpointScheme` (string, default: "0192"): Scheme identifier for buyer endpoint
+
+**Notes:**
+- Either `buyerReference` or `orderReference` should be provided for PEPPOL compliance
+- If neither is provided, the invoice number will be used as fallback
+- `clientEndpointId` defaults to `clientOrganizationNumber` if not provided
+- Default endpoint scheme is "0192" (Norwegian organization number)
 
 **Response (201 Created):**
 ```json
@@ -450,6 +472,64 @@ Mark an invoice as paid.
 curl -X PUT http://localhost:8080/api/invoices/1/pay \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
+
+### GET /api/invoices/{id}/pdf
+
+Download invoice as PDF file.
+
+**Permissions:** USER, ADMIN, ACCOUNTANT, CLIENT
+
+**Path Parameters:**
+- `id` (number): Invoice ID
+
+**Response (200 OK):**
+- Content-Type: `application/pdf`
+- Content-Disposition: `attachment; filename="faktura-{invoiceNumber}.pdf"`
+- Binary PDF data
+
+**Response (404 Not Found):**
+Invoice not found.
+
+**Example:**
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:8080/api/invoices/123/pdf \
+  -o invoice-123.pdf
+```
+
+### GET /api/invoices/{id}/efaktura
+
+Download invoice as EHF 3.0 XML (eFaktura) for PEPPOL network.
+
+**Permissions:** USER, ADMIN, ACCOUNTANT, CLIENT
+
+**Path Parameters:**
+- `id` (number): Invoice ID
+
+**Response (200 OK):**
+- Content-Type: `application/xml`
+- Content-Disposition: `attachment; filename="efaktura-{invoiceNumber}.xml"`
+- EHF 3.0 compliant XML (PEPPOL BIS Billing 3.0, Norwegian NS4102)
+
+**Compliance:**
+- PEPPOL BIS 3.0 Billing
+- Norwegian NS4102 standard
+- CEN EN16931 European e-invoicing standard
+
+**Response (404 Not Found):**
+Invoice not found.
+
+**Example:**
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:8080/api/invoices/123/efaktura \
+  -o invoice-123.xml
+```
+
+**Validation:**
+Generated XML can be validated at:
+- [ELMA Validator](https://anskaffelser.dev/validator/)
+- [PEPPOL Validation Service](https://peppol.helger.com/public/menuitem-validation-bis3)
 
 ---
 

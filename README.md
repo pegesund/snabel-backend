@@ -102,6 +102,26 @@ Tests include:
 - Invoice lifecycle (create, send, mark paid)
 - Role-based access control
 
+## Creating EHF- and pdf-invoices
+
+### Download pdf-invoice
+
+Downloads the invoice and saves it to 'invoice-123.pdf' in the working directory.
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:8080/api/invoices/123/pdf \
+  -o invoice-123.pdf
+```
+
+### Download EHF-invoice
+
+Downloads the invoice and saves it to 'invoice-123.xml' in the working directory.
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:8080/api/invoices/123/efaktura \
+  -o invoice-123.xml
+```
+
 ## For More Information
 
 See full documentation in the README or visit https://quarkus.io/
